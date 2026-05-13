@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Markdown rendering styles */
+.prose {
+  @apply text-gray-900;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  @apply font-bold mb-3 mt-4 text-gray-900;
+}
+
+.prose h1 {
+  @apply text-xl;
+}
+
+.prose h2 {
+  @apply text-lg;
+}
+
+.prose h3 {
+  @apply text-base;
+}
+
+.prose p {
+  @apply mb-2 leading-relaxed;
+}
+
+.prose ul,
+.prose ol {
+  @apply ml-4 mb-3;
+}
+
+.prose li {
+  @apply mb-1 list-item;
+}
+
+.prose ul li {
+  @apply list-disc;
+}
+
+.prose ol li {
+  @apply list-decimal;
+}
+
+.prose code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-gray-100 p-3 rounded mb-3 overflow-x-auto;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-indigo-500 pl-4 italic text-gray-600 my-3;
+}
+
+.prose strong {
+  @apply font-semibold;
+}
+
+.prose em {
+  @apply italic;
+}

@@ -20,6 +20,10 @@ from models import Document, Question
 from schemas import DocumentResponse, QuestionCreate, QuestionResponse
 from pdf_processor import PDFProcessor
 from simple_qa_engine import SimpleQAEngine
+from database import Base, engine
+import models  # IMPORTANT: ensures models are registered
+
+Base.metadata.create_all(bind=engine)
 
 load_dotenv()
 

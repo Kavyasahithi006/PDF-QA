@@ -1,20 +1,29 @@
-# PDF Q&A Backend Setup
+# PDF Q&A - RAG-Powered Document Assistant
 
-This backend provides a complete API for uploading PDF documents and asking questions about their content using FastAPI, LangChain, and local embeddings.
+A full-featured PDF question-answering application using **Retrieval Augmented Generation (RAG)**. Upload any PDF and get instant answers powered by Groq LLaMA AI, with context retrieved from your document using in-browser embeddings.
 
 ## Project Structure
 
 ```
-backend/
-├── main.py                 # FastAPI application
-├── models.py              # SQLAlchemy database models
-├── schemas.py             # Pydantic schemas
-├── database.py            # Database configuration
-├── pdf_processor.py       # PDF text extraction
-├── qa_engine.py           # Question-answering engine
-├── requirements.txt       # Python dependencies
-├── uploads/               # Directory for uploaded PDFs (created automatically)
-└── pdf_qa.db             # SQLite database (created automatically)
+PDF-QA-main/
+├── backend/
+│   ├── main.py                 # FastAPI application with endpoints
+│   ├── models.py              # SQLAlchemy database models
+│   ├── schemas.py             # Pydantic schemas for validation
+│   ├── database.py            # SQLite database configuration
+│   ├── pdf_processor.py       # PDF text extraction
+│   ├── simple_qa_engine.py    # Local QA engine
+│   ├── groq_client.py         # Groq API integration
+│   ├── requirements.txt       # Python dependencies
+│   ├── .env                   # Environment variables (API keys)
+│   ├── uploads/               # Directory for uploaded PDFs
+│   └── pdf_qa.db             # SQLite database
+│
+└── src/
+    ├── pages/                # React page components
+    ├── components/           # Reusable UI components
+    ├── context/             # React state management
+    └── utils/pdfRag.ts      # RAG pipeline utilities
 ```
 
 ## Installation
@@ -31,19 +40,37 @@ backend/
    pip install -r requirements.txt
    ```
 
-## Running the Server
+## Quick Start (5 minutes)
 
+### 1. Backend Setup
 ```bash
-python main.py
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows: venv\Scripts\activate, Mac/Linux: source venv/bin/activate)
+venv\Scripts\activate  
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env and add Groq API key
+echo "GROQ_API_KEY=gsk_YOUR_KEY_HERE" > .env
+
+# Start server
+python -m uvicorn main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`
+### 2. Frontend Setup (new terminal)
+```bash
+# In PDF-QA-main root
+npm install
+npm run dev
+```
 
-## API Documentation
-
-Once the server is running, visit:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+Backend: `http://localhost:8000`  
+Frontend: `http://localhost:5173`
 
 ## API Endpoints
 
@@ -52,26 +79,17 @@ Once the server is running, visit:
 - `GET /documents` - Get all uploaded documents
 - `GET /documents/{document_id}` - Get a specific document
 - `DELETE /documents/{document_id}` - Delete a document
+- `GET /documents/{document_id}/questions` - Get questions for a document
 
-### Question & Answer
-- `POST /ask` - Ask a question about a document
-- `GET /documents/{document_id}/questions` - Get all questions for a document
+### Question Answering
+- `POST /ask` - Ask a question about a document (uses local QA engine)
+- `POST /chat` - Send messages for chat completion (uses Groq API)
 
-## Frontend Integration
+## How It Works
 
-
-```typescript
-// In UploadPage.tsx, the upload response will now include:
-// { id, filename, upload_date, size }
-```
-
-```typescript
-// POST to /ask with:
-// { document_id: string, question: string }
-```
-
-##install dependencies
-pip install fastapi uvicorn python-multipart sqlalchemy PyMuPDF pydantic
-##Backend run uvicorn main:app --reload
-##frontend run npm install
-npm run dev
+1. **Upload PDF** - Frontend sends PDF to backend `/upload` endpoint
+2. **Extract Text** - Backend extracts text with PyMuPDF and stores in database
+3. **Frontend Processing** - Browser extracts text with pdfjs-dist, creates chunks, generates embeddings
+4. **Ask Question** - User asks question, browser embeds it and finds top 5 similar chunks
+5. **Get Answer** - Context sent to Groq API via `/chat` endpoint
+6. **Display Result** - Answer rendered with source attribution

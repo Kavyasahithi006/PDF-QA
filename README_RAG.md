@@ -15,7 +15,7 @@ Your PDF QA application has been **fully rebuilt** with a production-ready **Ret
 ❌ No context attribution
 
 ### After (RAG Pipeline)
-✅ Only top 5 relevant chunks sent to Claude
+✅ Only top 5 relevant chunks sent to Groq
 ✅ Semantic similarity search via embeddings
 ✅ High-quality, context-aware answers
 ✅ Source pages automatically cited
@@ -30,9 +30,9 @@ Your PDF QA application has been **fully rebuilt** with a production-ready **Ret
 | `src/utils/pdfRag.ts` | Core RAG utilities |
 | `RAG_SETUP.md` | Detailed technical guide |
 | `QUICK_START.md` | 5-minute setup guide |
-| `API_KEY_SETUP.md` | Claude API key instructions |
+| `API_KEY_SETUP.md` | Groq API key instructions |
 | `IMPLEMENTATION_SUMMARY.md` | Complete implementation details |
-| `.env.local` | Local environment config |
+| `backend/.env` | Local environment config |
 | `.env.example` | Environment template |
 
 ### Files Modified
@@ -40,7 +40,7 @@ Your PDF QA application has been **fully rebuilt** with a production-ready **Ret
 |------|---------|
 | `src/context/DocumentContext.tsx` | Added PDF/embedding state |
 | `src/pages/UploadPage.tsx` | Client-side RAG processing |
-| `src/pages/QAPage.tsx` | RAG retrieval + Claude API |
+| `src/pages/QAPage.tsx` | RAG retrieval + Groq API |
 | `src/index.css` | Markdown rendering styles |
 | `vite.config.ts` | Environment variable support |
 
@@ -93,12 +93,12 @@ Top 5 chunks → Format with page numbers
         "[Page 5]: More text..."
 ```
 
-### 6️⃣ Claude API Call
+### 6️⃣ Groq LLaMA API Call
 ```
-Context (only!) → Claude Sonnet 4 → Markdown answer
+Context (only!) → Groq LLaMA 3.3 70B → Markdown answer
         Never sends full PDF
+        Ultra-fast inference (~1-2 seconds)
         Max 1024 tokens response
-        ~1-3 seconds response time
 ```
 
 ### 7️⃣ Response Display
@@ -115,32 +115,17 @@ Answer → React Markdown rendering
 ### Prerequisites
 - Node.js 18+
 - Python 3.9+
-- Anthropic API key (free tier OK)
+- Groq API key (free tier OK)
 
 ### 1. Get API Key (2 minutes)
 ```
-1. Go to https://console.anthropic.com
-2. Click "API Keys" → "Create Key"
-3. Copy the key (starts with sk-ant-)
+1. Go to https://console.groq.com
+2. Click "API Keys" → "Create API Key"
+3. Copy the key (starts with gsk_)
 4. Save it securely
 ```
 
-### 2. Frontend Setup (3 minutes)
-```bash
-cd PDF-QA-main
-
-# Create environment file
-echo "VITE_ANTHROPIC_API_KEY=sk-ant-YOUR_KEY" > .env.local
-
-# Install (already done, but verify)
-npm install
-
-# Start dev server
-npm run dev
-# Opens: http://localhost:5173
-```
-
-### 3. Backend Setup (2 minutes)
+### 2. Backend Setup (3 minutes)
 ```bash
 cd backend
 
@@ -148,6 +133,29 @@ cd backend
 python -m venv venv
 # Windows: venv\Scripts\activate
 # macOS/Linux: source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create environment file
+echo "GROQ_API_KEY=gsk_YOUR_KEY" > .env
+
+# Start server
+python -m uvicorn main:app --reload
+# Runs on http://localhost:8000
+```
+
+### 3. Frontend Setup (2 minutes)
+```bash
+cd PDF-QA-main
+
+# Install (if not already done)
+npm install
+
+# Start dev server
+npm run dev
+# Opens: http://localhost:5173
+```
 
 # Dependencies
 pip install -r requirements.txt
@@ -167,7 +175,7 @@ python -m uvicorn main:app --reload
 2. **Upload PDF**: Click "Upload Document" or drag-drop
 3. **Wait**: Progress bar shows "Processing PDF..."
 4. **Ask**: Type your question
-5. **Get Answer**: Claude responds with sources cited
+5. **Get Answer**: Groq LLaMA responds with sources cited
 
 ### Example Questions
 - "What is this document about?"
@@ -185,8 +193,8 @@ python -m uvicorn main:app --reload
 | PDF upload & processing | 10-30 seconds* |
 | Model download (first time) | ~100-200 MB |
 | Question embedding | <1 second |
-| Claude response | 1-3 seconds |
-| Total answer time | ~2-4 seconds |
+| Groq LLaMA response | 1-2 seconds |
+| Total answer time | ~2-3 seconds |
 
 *Depends on PDF size and computer speed
 
@@ -194,16 +202,15 @@ python -m uvicorn main:app --reload
 
 ## 🔐 Environment Configuration
 
-### `.env.local` (NEVER commit this!)
+### `backend/.env` (NEVER commit this!)
 ```env
-VITE_ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ### What Happens
-- Vite picks up `VITE_` prefixed variables
-- Available as `import.meta.env.VITE_ANTHROPIC_API_KEY`
-- QAPage.tsx uses this for Claude API calls
-- Backend doesn't need it (only frontend)
+- Backend loads this via `python-dotenv`
+- Used in `groq_client.py` to authenticate API calls
+- Frontend doesn't need this (embeddings are in-browser, free)
 
 ---
 
@@ -275,7 +282,7 @@ PDF-QA-main/
 
 ### Decision: Top 5 Chunks Only
 ✅ **Pros**:
-- Cheap (few tokens to Claude)
+- Cheap (few tokens to Groq)
 - Fast response
 - Focused, accurate answers
 
@@ -310,11 +317,11 @@ Where:
 - Result: 0 to 1 (1 = most similar)
 ```
 
-### Claude Integration
-- **Model**: claude-sonnet-4-20250514
+### Groq Integration
+- **Model**: `llama-3.3-70b-versatile`
 - **Max Tokens**: 1024
 - **System Prompt**: Context-only instructions
-- **Cost**: ~$0.003 per 1M tokens (input)
+- **Cost**: Uses Groq pricing with efficient context-only payloads
 
 ---
 
@@ -327,7 +334,7 @@ Where:
 - [x] Cosine similarity retrieval
 - [x] Top 5 chunks selection
 - [x] Context formatting with sources
-- [x] Claude API integration
+- [x] Groq API integration
 - [x] Markdown response rendering
 
 ### User Experience
@@ -362,9 +369,9 @@ Where:
 → Check if embedding model is downloading
 → Try refreshing page
 
-### "No answer from Claude"
-→ Check `.env.local` has API key
-→ Verify key is valid at console.anthropic.com
+### "No answer from Groq"
+→ Check `backend/.env` has `GROQ_API_KEY`
+→ Verify key is valid at console.groq.com
 → Check internet connection
 → Look for rate limit errors
 
@@ -393,12 +400,12 @@ Where:
 ## 🎓 Learning Resources
 
 ### Understanding RAG
-- https://docs.anthropic.com/en/docs/build-a-retrieval-augmented-generation-rag-chatbot
-- https://www.anthropic.com/news/building-effective-agents
+- https://docs.groq.com
+- https://docs.groq.com/news
 
-### Claude API
-- https://docs.anthropic.com/en/api/getting-started
-- https://docs.anthropic.com/en/api/messages
+### Groq API
+- https://docs.groq.com
+- https://docs.groq.com/reference
 
 ### Embeddings & Similarity
 - https://huggingface.co/Xenova/all-MiniLM-L6-v2
@@ -441,7 +448,7 @@ Your PDF QA application now has:
 - Restart dev servers after `.env.local` change
 - Clear browser cache (F12 → Storage → Clear All)
 - Verify PDF has extractable text (not scanned)
-- Check API key validity at console.anthropic.com
+- Check API key validity at console.groq.com
 
 ---
 
@@ -453,7 +460,7 @@ Your PDF QA application now has:
 | Text chunking | ✅ | 500 chars, 100 overlap |
 | Embeddings | ✅ | In-browser, free, cached |
 | Retrieval | ✅ | Cosine similarity, top 5 |
-| Claude API | ✅ | Sonnet 4, context-only |
+| Groq API | ✅ | llama-3.3-70b-versatile, context-only |
 | Markdown | ✅ | Full formatting support |
 | Source citation | ✅ | Automatic page tracking |
 | Chat history | ✅ | Last 4 messages for context |

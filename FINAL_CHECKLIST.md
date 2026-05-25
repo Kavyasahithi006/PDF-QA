@@ -22,7 +22,7 @@ Your PDF QA application has been fully rebuilt with a production-ready RAG pipel
 ### Modified Files ✅
 - [ ] `src/context/DocumentContext.tsx` - Updated with RAG state
 - [ ] `src/pages/UploadPage.tsx` - Updated with client-side processing
-- [ ] `src/pages/QAPage.tsx` - Updated with RAG retrieval + Claude API
+- [ ] `src/pages/QAPage.tsx` - Updated with RAG retrieval + Groq API
 - [ ] `src/index.css` - Updated with markdown styles
 - [ ] `vite.config.ts` - Updated with env prefix
 - [ ] `package.json` - Dependencies installed
@@ -42,18 +42,19 @@ Run: `npm list pdfjs-dist @xenova/transformers react-markdown remark-gfm`
 
 ## 🛠️ Configuration Verification
 
-### `.env.local` File
+### `backend/.env` File
 ```bash
-cat .env.local
+cat backend/.env
 ```
 
-- [ ] File exists in project root (`PDF-QA-main/.env.local`)
-- [ ] Contains: `VITE_ANTHROPIC_API_KEY=sk-ant-...`
+- [ ] File exists in backend folder (`PDF-QA-main/backend/.env`)
+- [ ] Contains: `GROQ_API_KEY=gsk_...`
 - [ ] API key is valid and complete
 - [ ] No extra whitespace or quotes
 
-### Vite Config
-- [ ] `vite.config.ts` has `envPrefix: 'VITE_'`
+### Backend Configuration
+- [ ] `backend/main.py` imports `load_dotenv()` and loads `.env`
+- [ ] `groq_client.py` has valid Groq API integration
 
 ---
 
@@ -103,8 +104,8 @@ cat .env.local
 - [ ] Call `embedText()` for question
 - [ ] Call `cosineSimilarity()` with chunk embeddings
 - [ ] Select top 5 chunks
-- [ ] Call Claude API at `https://api.anthropic.com/v1/messages`
-- [ ] Use model `claude-sonnet-4-20250514`
+- [ ] Call Groq API at `https://api.groq.com/openai/v1/chat/completions`
+- [ ] Use model `llama-3.3-70b-versatile` (Groq API)
 - [ ] Use system prompt for context-only responses
 - [ ] Extract page sources from top chunks
 - [ ] Display markdown with `ReactMarkdown`
@@ -152,7 +153,7 @@ npm run dev
 - [ ] First response takes ~2-3 seconds
 - [ ] Response includes markdown formatting
 
-### Test 5: Claude Response
+### Test 5: Groq Response
 1. Ask: "What is this document about?"
 2. Wait for response
 
@@ -174,7 +175,7 @@ npm run dev
 3. Upload PDF and ask question
 
 - [ ] Error shows: "API key not configured"
-- [ ] No connection attempt to Claude
+- [ ] No connection attempt to Groq
 
 ### Test 8: Error Handling - Scanned PDF
 1. Upload a PDF with no extractable text (scanned image)
@@ -216,7 +217,7 @@ Large PDF (100 pages):    30+ seconds
 
 ### Query Response Time
 ```
-First query:  2-3 seconds (Claude API)
+First query:  2-3 seconds (Groq API)
 Next queries: 1-2 seconds (cached embeddings)
 ```
 
@@ -281,7 +282,7 @@ Before going live, verify:
 If deploying to production:
 
 - [ ] Remove `console.log` statements from production code
-- [ ] Set `VITE_ANTHROPIC_API_KEY` in production environment
+- [ ] Set `GROQ_API_KEY` in `backend/.env` for production environment
 - [ ] Build: `npm run build`
 - [ ] Test build: `npm run preview`
 - [ ] Update backend API URL if different
@@ -304,7 +305,7 @@ If deploying to production:
 → Check browser console for errors
 
 ### Response Issues
-→ Verify API key validity at console.anthropic.com
+→ Verify API key validity at console.groq.com
 → Check internet connection
 → Review error messages in DevTools console
 
@@ -323,10 +324,10 @@ Your implementation is **COMPLETE** and **WORKING** when:
 2. ✅ Processing shows progress bar (10% → 100%)
 3. ✅ Chat page loads after processing
 4. ✅ Questions generate embeddings (instant)
-5. ✅ Claude provides answers within 3 seconds
+5. ✅ Groq provides answers within 3 seconds
 6. ✅ Answers include source page citations
 7. ✅ Markdown formatting renders correctly
-8. ✅ No "full PDF" sent to Claude API
+8. ✅ No "full PDF" sent to Groq API
 9. ✅ Error handling works for edge cases
 10. ✅ Documentation is complete and accurate
 
@@ -353,7 +354,7 @@ If all checkboxes are complete, your RAG pipeline is:
 | Start frontend | `npm run dev` |
 | Build frontend | `npm run build` |
 | Test build | `npm run preview` |
-| Add API key | Edit `.env.local` (add `VITE_ANTHROPIC_API_KEY`) |
+| Add API key | Edit `backend/.env` (add `GROQ_API_KEY=gsk_...`) |
 | View logs | Check terminal and browser console (F12) |
 | Clear cache | `npm run build && npm run preview` |
 

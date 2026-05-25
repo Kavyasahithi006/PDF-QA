@@ -90,31 +90,31 @@
                     ┌────────────────┴────────────────┐
                     │                                │
                     ↓                                ↓
-                ┌──────────┐              ┌─────────────────────┐
-                │ HTTPS    │──────────────→│  STEP 7: CLAUDE API │
-                │ REQUEST  │              │  CALL               │
-                │          │              │                     │
-                │ Headers: │              │ Model: claude-      │
-                │ - Key    │              │ sonnet-4-20250514   │
-                │ - JSON   │              │                     │
-                │          │              │ System prompt:      │
-                │          │              │ "Answer only from   │
-                │          │              │  provided sections" │
-                │          │              │                     │
-                │          │              │ Input: ~300 tokens  │
-                │          │              │ Output: 1024 max    │
-                └──────────┘              └──────────┬──────────┘
+                ┌──────────┐              ┌─────────────────────────────┐
+                │ HTTPS    │──────────────→│  STEP 7: GROQ API CALL      │
+                │ REQUEST  │              │                             │
+                │          │              │ Model: llama-3.3-70b-       │
+                │ Headers: │              │ versatile                   │
+                │ - Key    │              │                             │
+                │ - JSON   │              │ System prompt:              │
+                │          │              │ "Answer only from provided  │
+                │          │              │  sections"                  │
+                │          │              │                             │
+                │          │              │ Input: ~300 tokens          │
+                │          │              │ Output: 1024 max            │
+                │          │              │ Ultra-fast: ~1-2 seconds    │
+                └──────────┘              └──────────┬──────────────────┘
                                                      │
                                     ┌────────────────┴────────────────┐
                                     │ (Internet/Network)              │
-                                    │ api.anthropic.com/v1/messages   │
+                                    │ api.groq.com/openai/v1/chat    │
                                     └────────────────┬────────────────┘
                                                      │
                                                      ↓
                                     ┌────────────────────────────────┐
                                     │ STEP 8: RESPONSE RENDERING      │
                                     │                                │
-                                    │ Claude returns markdown:        │
+                                    │ Groq returns markdown:          │
                                     │ "## Main findings               │
                                     │  1. Point A                     │
                                     │  2. Point B                     │
@@ -143,24 +143,13 @@
 
 ---
 
-## 📊 Data Flow Comparison
-
-### OLD APPROACH (No RAG)
-```
-PDF → Full Text → Backend → Claude → Answer
-  ❌ Full PDF to LLM
-  ❌ Can exceed token limits
-  ❌ Expensive
-  ❌ Poor answer relevance
-```
-
-### NEW APPROACH (RAG Pipeline)
+## 📊 Data Flow Comparison (RAG Pipeline)
 ```
 PDF → Extract → Chunk → Embed
         ↓
    Retrieve Top 5 → Build Context (2KB)
         ↓
-   Claude API (context only)
+   Groq LLaMA API (context only)
         ↓
    High-quality, cheap, relevant answer
   ✅ Never full PDF
@@ -196,11 +185,11 @@ PDF → Extract → Chunk → Embed
 └─────────────────────────────────────────────────────────────┘
          ↓                                    ↓
     (Temporary)                         (Only on demand)
-  Page refresh loses               API calls to Claude
+  Page refresh loses               API calls to Groq
   all state                        (context only, never full PDF)
                                      ↓
                         ┌──────────────────────────────────┐
-                        │ ANTHROPIC CLAUDE API              │
+                        │ GROQ API                         │
                         │                                  │
                         │ Receives:                         │
                         │ - Context (top 5 chunks)          │
@@ -214,7 +203,7 @@ PDF → Extract → Chunk → Embed
                         │                                  │
                         │ Responds:                         │
                         │ - Markdown answer                 │
-                        │ - ~2 seconds                      │
+                        │ - ~1-2 seconds                    │
                         └──────────────────────────────────┘
                                      ↓
                         ┌──────────────────────────────────┐
@@ -228,7 +217,7 @@ PDF → Extract → Chunk → Embed
                         │ Does NOT:                        │
                         │ - Process PDF                    │
                         │ - Generate embeddings            │
-                        │ - Call Claude API                │
+                        │ - Call Groq API                │
                         └──────────────────────────────────┘
 ```
 
@@ -262,10 +251,10 @@ USER ACTION                          TIME        CUMULATIVE
 3. Embed question                    0.1s        0.1s
 4. Calculate similarities            0.5s        0.6s
 5. Build context                     0.1s        0.7s
-6. Call Claude API                   2s          2.7s  ← Network
-7. Parse response                    0.1s        2.8s
-8. Render markdown                   0.1s        2.9s
-   [TOTAL: ~3 seconds per question]
+6. Call Groq API                     1.5s        2.2s  ← Network
+7. Parse response                    0.1s        2.3s
+8. Render markdown                   0.1s        2.4s
+   [TOTAL: ~2-3 seconds per question]
 
 ─────────────────────────────────────────────────────────────
 ANSWER DISPLAYED ✅
@@ -311,7 +300,7 @@ Similarity Scores:
 
 Selected Chunks: [4-1]
 
-Context sent to Claude:
+Context sent to Groq:
 "Relevant sections from the document:
 
  [Page 4]: Results show 95% accuracy on test data...
@@ -320,7 +309,7 @@ Context sent to Claude:
 
 ─────────────────────────────────────────
 
-Claude Response: "Based on the document, 
+Groq Response: "Based on the document, 
 the results show 95% accuracy on the 
 test data."
 
@@ -360,7 +349,7 @@ User asks question
     ├─ cosineSimilarity() for all chunks
     ├─ topChunks = top 5 most similar
     ├─ context = buildContextString(topChunks)
-    ├─ Call Claude API (context in body)
+    ├─ Call Groq API (context in body)
     ├─ Parse response
     ├─ setHistory([...history, user message, assistant response])
     └─ render in UI
@@ -425,7 +414,7 @@ Similarity = (0.1×0.15 + 0.9×0.85 + 0.2×0.25)
 
 ### Context Window
 ```
-Claude's context window: 200,000 tokens
+Groq LLaMA 3.3 context window: 8,192 tokens
 Our approach:
 - Context: ~300 tokens (5 chunks)
 - Question: ~50 tokens

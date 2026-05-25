@@ -2,7 +2,7 @@
 
 ## ✅ Completed: Full RAG Implementation
 
-Your PDF QA application has been completely rebuilt with a proper Retrieval Augmented Generation (RAG) pipeline. The system now follows a strict RAG approach that **never sends the full PDF to the LLM**.
+Your PDF QA application has been completely rebuilt with a proper Retrieval Augmented Generation (RAG) pipeline using Groq LLaMA. The system now follows a strict RAG approach that **never sends the full PDF to the LLM**.
 
 ---
 
@@ -10,7 +10,7 @@ Your PDF QA application has been completely rebuilt with a proper Retrieval Augm
 
 ### Before (Basic Approach)
 ```
-PDF → Extract text → Send full text to backend → Claude → Answer
+PDF → Extract text → Send full text to backend → Groq LLaMA → Answer
                        ❌ No chunking
                        ❌ No embeddings
                        ❌ Full PDF sent to LLM
@@ -25,7 +25,7 @@ PDF → Extract text → Create chunks → Generate embeddings (browser)
    ├─ Embed question (same model, browser)
    ├─ Find top 5 similar chunks (cosine similarity)
    ├─ Build context from top chunks only
-   └─ Send context (not full PDF) to Claude
+   └─ Send context (not full PDF) to Groq
    
    Result: ✅ Better answers
            ✅ Cheaper API calls
@@ -44,7 +44,7 @@ PDF → Extract text → Create chunks → Generate embeddings (browser)
   - `loadEmbeddingModel()` - Load Xenova embedding model
   - `embedText()` - Generate embeddings for text
   - `cosineSimilarity()` - Calculate vector similarity
-  - `buildContextString()` - Format chunks for Claude
+  - `buildContextString()` - Format chunks for Groq API
 
 ### Configuration
 - **`.env.local`** - Local environment with API key template
@@ -74,8 +74,8 @@ PDF → Extract text → Create chunks → Generate embeddings (browser)
 
 3. **`src/pages/QAPage.tsx`** ✅ UPDATED
    - Replaced backend Q&A with RAG-based retrieval
-   - Implements: Question embedding → chunk retrieval (top 5) → Claude API
-   - Sends only relevant context to Claude (never full PDF)
+   - Implements: Question embedding → chunk retrieval (top 5) → Groq API
+   - Sends only relevant context to Groq (never full PDF)
    - Displays markdown responses with markdown rendering
    - Shows source pages for each answer
    - Maintains chat history (last 4 messages)
@@ -143,13 +143,13 @@ PDF → Extract text → Create chunks → Generate embeddings (browser)
 - **Size**: Typically 1,500-3,000 tokens (well within limits)
 - **Includes**: Page numbers for source attribution
 
-### Step 6: Claude API Call
-- **Model**: `claude-sonnet-4-20250514`
+### Step 6: Groq API Call
+- **Model**: `llama-3.3-70b-versatile`
 - **Max Tokens**: 1024
-- **System Prompt**: Instructs Claude to answer only from provided sections
+- **System Prompt**: Instructs Groq to answer only from provided sections
 - **Input**: Context + user question
 - **Output**: Markdown-formatted answer
-- **API Calls**: 1 per question (only to Claude)
+- **API Calls**: 1 per question (only to Groq)
 
 ### Step 7: Response Display
 - **Rendering**: React Markdown with proper formatting
@@ -167,7 +167,7 @@ PDF → Extract text → Create chunks → Generate embeddings (browser)
 - [x] Embedding generation (in-browser)
 - [x] Cosine similarity retrieval
 - [x] Context building
-- [x] Claude API integration
+- [x] Groq API integration
 - [x] Markdown response rendering
 - [x] Source attribution
 
@@ -208,10 +208,10 @@ PDF → Extract text → Create chunks → Generate embeddings (browser)
 
 ## 🔐 Configuration Required
 
-### `.env.local` (Create in project root)
+### `backend/.env` (Create in backend folder)
 ```env
-# Get from: https://console.anthropic.com/account/keys
-VITE_ANTHROPIC_API_KEY=sk-ant-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Get from: https://console.groq.com/account/keys
+GROQ_API_KEY=gsk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
 **Important**: Never commit `.env.local` (add to `.gitignore`)
@@ -225,7 +225,7 @@ VITE_ANTHROPIC_API_KEY=sk-ant-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 - [x] Embedding generation (in-browser, free)
 - [x] Cosine similarity retrieval (top 5 chunks)
 - [x] Context building with source attribution
-- [x] Claude API integration for answer generation
+- [x] Groq API integration for answer generation
 - [x] Markdown rendering in UI
 - [x] Chat history maintenance
 - [x] Error handling for all edge cases
@@ -252,7 +252,7 @@ python -m uvicorn main:app --reload
 ```bash
 cd PDF-QA-main
 npm install  # (already done)
-echo "VITE_ANTHROPIC_API_KEY=your_key" > .env.local
+echo "GROQ_API_KEY=your_key" > backend/.env
 npm run dev
 ```
 
@@ -316,7 +316,7 @@ Visit: http://localhost:5173
        └────────┬─────────┘
                 ↓
        ┌──────────────────────┐
-       │ Call Claude API      │
+       │ Call Groq API        │
        │ (context only, not   │
        │  full PDF)           │
        └────────┬─────────────┘
@@ -340,7 +340,7 @@ Visit: http://localhost:5173
 7. **Source attribution** - Exact pages shown
 8. **Error handling** - Graceful fallbacks
 9. **Privacy** - PDF never leaves browser (except for backend storage)
-10. **Modern** - Uses latest Claude model
+10. **Modern** - Uses latest Groq LLaMA model
 
 ---
 
@@ -350,7 +350,7 @@ Your PDF QA application now has a **production-ready RAG pipeline** that:
 - Extracts and processes PDFs efficiently
 - Generates semantic embeddings locally (free)
 - Retrieves relevant context precisely
-- Integrates with Claude for intelligent responses
+- Integrates with Groq for intelligent responses
 - Provides excellent user experience
 - Handles errors gracefully
 - Never sends the full PDF to the LLM
@@ -358,7 +358,7 @@ Your PDF QA application now has a **production-ready RAG pipeline** that:
 **Status**: ✅ READY FOR USE
 
 Next steps:
-1. Add your Anthropic API key to `.env.local`
+1. Add your Groq API key to `backend/.env`
 2. Start backend: `python -m uvicorn main:app --reload`
 3. Start frontend: `npm run dev`
 4. Open http://localhost:5173 and upload a PDF!

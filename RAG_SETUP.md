@@ -1,6 +1,6 @@
 # PDF QA - RAG-Powered Document Q&A Assistant
 
-A modern, full-featured PDF question-answering application powered by **Retrieval Augmented Generation (RAG)**. Upload any PDF and get instant, accurate answers using Claude AI with context retrieved directly from your document.
+A modern, full-featured PDF question-answering application powered by **Retrieval Augmented Generation (RAG)**. Upload any PDF and get instant, accurate answers using Groq AI with context retrieved directly from your document.
 
 ## Features
 
@@ -9,7 +9,7 @@ A modern, full-featured PDF question-answering application powered by **Retrieva
 - 🧩 **Intelligent Chunking**: Overlapping text chunks (~500 chars with 100 char overlap) for context preservation
 - 🤖 **In-Browser Embeddings**: Free embeddings using `@xenova/transformers` (no API key needed)
 - 🔍 **Cosine Similarity Retrieval**: Top-5 most relevant chunks per question
-- 💬 **Claude AI Integration**: GPT-like responses using Anthropic's Claude Sonnet
+- 💬 **Groq AI Integration**: Ultra-fast LLaMA responses using Groq API
 - ✨ **Markdown Rendering**: Beautiful, formatted responses with proper styling
 - 📍 **Source Attribution**: Automatic source page citation for every answer
 - 💾 **Chat History**: Maintains context across follow-up questions
@@ -37,7 +37,7 @@ A modern, full-featured PDF question-answering application powered by **Retrieva
 - **PyMuPDF** (PDF processing fallback)
 
 ### External APIs
-- **Anthropic Claude API** (answer generation)
+- **Groq LLaMA API** (answer generation)
 
 ---
 
@@ -46,24 +46,9 @@ A modern, full-featured PDF question-answering application powered by **Retrieva
 ### Prerequisites
 - **Node.js** 18+ and npm/yarn
 - **Python** 3.9+
-- **Anthropic API Key** (get it from https://console.anthropic.com/)
+- **Groq API Key** (get it from https://console.groq.com)
 
-### 1. Frontend Setup
-
-```bash
-cd PDF-QA-main
-
-# Install dependencies
-npm install
-
-# Create .env.local and add your Anthropic API key
-echo "VITE_ANTHROPIC_API_KEY=your_key_here" > .env.local
-
-# Start dev server (runs on http://localhost:5173)
-npm run dev
-```
-
-### 2. Backend Setup
+### 1. Backend Setup
 
 ```bash
 cd backend
@@ -80,8 +65,23 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Create .env and add your Groq API key
+echo "GROQ_API_KEY=gsk_your_key_here" > .env
+
 # Start server (runs on http://localhost:8000)
 python -m uvicorn main:app --reload
+```
+
+### 2. Frontend Setup (new terminal)
+
+```bash
+cd PDF-QA-main
+
+# Install dependencies
+npm install
+
+# Start dev server (runs on http://localhost:5173)
+npm run dev
 ```
 
 ---
@@ -114,7 +114,7 @@ When you ask a question:
 - Top 5 most similar chunks are retrieved
 
 #### **Step 5: Context Building**
-Retrieved chunks are formatted for Claude:
+Retrieved chunks are formatted for Groq API:
 ```
 Relevant sections from the document:
 
@@ -125,10 +125,11 @@ Relevant sections from the document:
 ...
 ```
 
-#### **Step 6: LLM Answer Generation**
-Claude API generates the answer:
-- Model: `claude-sonnet-4-20250514`
+#### **Step 6: Groq LLaMA Answer Generation**
+Groq LLaMA API generates the answer:
+- Model: `llama-3.3-70b-versatile`
 - System prompt ensures context-only responses
+- Ultra-fast inference (typically <2 seconds)
 - Max tokens: 1024
 
 #### **Step 7: Display Response**
@@ -151,7 +152,7 @@ User asks question
   ↓
 Embed question → Find top 5 chunks → Build context
   ↓
-Call Claude API with context
+Call Groq API with context
   ↓
 Display answer with sources
 ```
@@ -219,7 +220,7 @@ PDF-QA-main/
 | `loadEmbeddingModel()` | Load embedding model (Xenova) |
 | `embedText(text, embedder)` | Generate embedding for text |
 | `cosineSimilarity(a, b)` | Calculate similarity between vectors |
-| `buildContextString(chunks)` | Format chunks for Claude |
+| `buildContextString(chunks)` | Format chunks for Groq |
 
 ---
 
@@ -231,7 +232,7 @@ PDF-QA-main/
 
 ### 2. **Large PDFs**
 - Chunked efficiently to avoid context window limits
-- Only top 5 chunks sent to Claude (never full PDF)
+- Only top 5 chunks sent to Groq (never full PDF)
 - Memory-efficient in-browser processing
 
 ### 3. **Chat History**
@@ -240,7 +241,7 @@ PDF-QA-main/
 - Automatically cleared when new PDF uploaded
 
 ### 4. **API Errors**
-- Missing API key: "Anthropic API key not configured..."
+- Missing API key: "Groq API key not configured..."
 - API failure: "Something went wrong. Please try again."
 - Network issues: Error message displayed with retry option
 
@@ -253,9 +254,9 @@ PDF-QA-main/
 Create `.env.local` in the project root:
 
 ```env
-# Required: Anthropic API Key
-# Get from: https://console.anthropic.com/account/keys
-VITE_ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Required: Groq API Key
+# Get from: https://console.groq.com/keys
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ### Vite Configuration
@@ -264,7 +265,7 @@ The app automatically picks up environment variables prefixed with `VITE_`:
 
 ```typescript
 // In QAPage.tsx:
-const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+const apiKey = process.env.GROQ_API_KEY;
 ```
 
 ---
@@ -292,7 +293,7 @@ Visit `http://localhost:5173`
 
 ### 3. **Ask Questions**
 - Type questions about the PDF
-- Claude answers based on relevant chunks only
+- Groq answers based on relevant chunks only
 - Sources shown below each answer
 
 ### 4. **Continue the Conversation**
@@ -320,14 +321,14 @@ Visit `http://localhost:5173`
 1. **No OCR**: Scanned PDFs (image-only) are not supported
 2. **Browser Memory**: Very large embeddings arrays may cause performance issues
 3. **No Persistence**: Embeddings lost on page refresh (re-upload required)
-4. **API Rate Limits**: Anthropic API rate limits apply
+4. **API Rate Limits**: Groq API rate limits apply
 5. **No Summarization**: "Summarize whole document" feature not implemented (requires chunking strategy)
 
 ---
 
 ## Troubleshooting
 
-### "Anthropic API key not configured"
+### "Groq API key not configured"
 - Create `.env.local` with your API key
 - Restart the dev server: `npm run dev`
 - Clear browser cache and reload
@@ -342,9 +343,9 @@ Visit `http://localhost:5173`
 - Browser cache stores model for future use
 - Large PDFs take longer to chunk and embed
 
-### "No answer from Claude"
+### "No answer from Groq"
 - Check network connection
-- Verify Anthropic API key is valid
+- Verify Groq API key is valid
 - Check API account for rate limits or quota issues
 
 ---
@@ -378,4 +379,4 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ using React, FastAPI, and Claude AI**
+**Built with ❤️ using React, FastAPI, and Groq AI**

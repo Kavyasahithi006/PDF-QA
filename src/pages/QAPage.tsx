@@ -19,7 +19,7 @@ const QAPage: React.FC = () => {
     error,
     setError,
   } = useDocuments();
-
+       
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);

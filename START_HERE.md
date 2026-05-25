@@ -14,7 +14,7 @@ Your PDF QA application has been **fully rebuilt** with a production-ready **Ret
     ↓
 6. Find Top 5 Similar Chunks (cosine similarity)
     ↓
-7. Send ONLY Context to Claude (never full PDF!)
+7. Send ONLY Context to Groq (never full PDF!)
     ↓
 Get Intelligent Answer with Source Pages
 ```
@@ -32,23 +32,29 @@ Get Intelligent Answer with Source Pages
 
 ### 1. Get API Key (2 minutes)
 ```
-1. Go to: https://console.anthropic.com
-2. Click "API Keys" → "Create Key"
-3. Copy your key (starts with sk-ant-)
+1. Go to: https://console.groq.com
+2. Click "API Keys" → "Create API Key"
+3. Copy your key (starts with gsk_)
 ```
 
 ### 2. Configure Project (1 minute)
 ```bash
-cd PDF-QA-main
-echo "VITE_ANTHROPIC_API_KEY=sk-ant-YOUR_KEY" > .env.local
+cd PDF-QA-main/backend
+echo "GROQ_API_KEY=gsk_YOUR_KEY" > .env
 ```
 
-### 3. Start Servers (2 minutes)
+### 3. Setup & Start Servers (3 minutes)
 ```bash
 # Terminal 1 - Backend
-cd backend && python -m uvicorn main:app --reload
+cd backend
+python -m venv venv
+venv\Scripts\activate  # or: source venv/bin/activate (Mac/Linux)
+pip install -r requirements.txt
+python -m uvicorn main:app --reload
 
 # Terminal 2 - Frontend  
+cd PDF-QA-main
+npm install
 npm run dev
 ```
 
@@ -75,10 +81,10 @@ npm run dev
   - Extracts → chunks → generates embeddings all in browser
   
 - **`src/pages/QAPage.tsx`** - Chat interface with RAG retrieval
-  - Embeds questions → retrieves top 5 chunks → calls Claude API
+  - Embeds questions → retrieves top 5 chunks → calls Groq API
 
 ### Configuration
-- **`.env.local`** - Local environment (add API key here)
+- **`backend/.env`** - Local environment config (add Groq API key here)
 - **`.env.example`** - Environment template
 - **`vite.config.ts`** - Updated for environment variables
 
@@ -98,7 +104,7 @@ npm run dev
 
 ### Old Approach (No RAG)
 ```
-PDF → Extract full text → Send to Claude → Answer
+PDF → Extract full text → Send to Groq → Answer
 ❌ Can exceed token limits
 ❌ Expensive API calls
 ❌ Less relevant answers
@@ -106,8 +112,8 @@ PDF → Extract full text → Send to Claude → Answer
 
 ### New Approach (RAG)
 ```
-PDF → Extract → Chunk → Embed → Retrieve Top 5 → Claude → Answer
-✅ Only 300-500 tokens to Claude
+PDF → Extract → Chunk → Embed → Retrieve Top 5 → Groq → Answer
+✅ Only 300-500 tokens to Groq
 ✅ 10x cheaper
 ✅ More accurate, contextualized answers
 ✅ Knows source pages
@@ -122,7 +128,7 @@ PDF → Extract → Chunk → Embed → Retrieve Top 5 → Claude → Answer
 - [x] Smart chunking (500 chars, 100 char overlap)
 - [x] In-browser embeddings (Xenova/MiniLM)
 - [x] Cosine similarity retrieval (top 5 chunks)
-- [x] Claude API integration (context-only)
+- [x] Groq API integration (context-only)
 - [x] Source attribution (automatic)
 
 ### UX
@@ -149,7 +155,7 @@ PDF → Extract → Chunk → Embed → Retrieve Top 5 → Claude → Answer
 | PDF processing (50 pages) | 15-25 seconds |
 | Model download (first time) | ~10-30 seconds |
 | Question embedding | <1 second |
-| Claude response | 1-3 seconds |
+| Groq response | 1-3 seconds |
 | **Total per question** | **2-4 seconds** |
 
 ---
@@ -162,7 +168,7 @@ PDF → Extract → Chunk → Embed → Retrieve Top 5 → Claude → Answer
 **Rendering**: react-markdown
 **Styling**: Tailwind CSS + Framer Motion
 **Backend**: FastAPI + SQLite
-**LLM**: Anthropic Claude API
+**LLM**: Groq LLaMA 3.3 (llama-3.3-70b-versatile)
 
 ---
 
@@ -172,7 +178,7 @@ PDF → Extract → Chunk → Embed → Retrieve Top 5 → Claude → Answer
 |------|---------|
 | `src/context/DocumentContext.tsx` | ✅ Added RAG state management |
 | `src/pages/UploadPage.tsx` | ✅ Client-side PDF processing |
-| `src/pages/QAPage.tsx` | ✅ RAG retrieval + Claude integration |
+| `src/pages/QAPage.tsx` | ✅ RAG retrieval + Groq integration |
 | `src/index.css` | ✅ Markdown rendering styles |
 | `vite.config.ts` | ✅ Environment variable support |
 | `package.json` | ✅ New dependencies installed |
@@ -230,12 +236,12 @@ Follow [FINAL_CHECKLIST.md](FINAL_CHECKLIST.md) to verify everything works
 1. Browser generates question embedding
 2. Browser finds 5 most similar chunks
 3. Browser builds context string
-4. Browser sends to Claude: context + question
-5. Claude responds with answer
+4. Browser sends to Groq: context + question
+5. Groq responds with answer
 6. Browser shows answer + source pages ✅
 ```
 
-**Key**: Full PDF never leaves browser, never sent to Claude!
+**Key**: Full PDF never leaves browser, never sent to Groq!
 
 ---
 
@@ -276,7 +282,7 @@ Follow [FINAL_CHECKLIST.md](FINAL_CHECKLIST.md) to verify everything works
    1. Embeds question
    2. Finds 5 most relevant pages
    3. Builds context
-   4. Calls Claude with context only
+→ Calls Groq with context only
 → Result: "Based on the document, the key findings are: ..."
 → Shows: "**Sources: Page 3, 12, 18, 25, 31**"
 
@@ -315,8 +321,8 @@ Your PDF QA application now has:
 → All new files are in `src/utils/`, `src/context/`, `src/pages/`
 
 ### API Key
-→ Get from https://console.anthropic.com/account/keys
-→ Add to `.env.local` in project root
+→ Get from https://console.groq.com/account/keys
+→ Add to `backend/.env`
 
 ### Troubleshooting
 → Read [QUICK_START.md](QUICK_START.md) first

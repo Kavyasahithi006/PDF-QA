@@ -112,7 +112,7 @@ README_RAG.md (Overview)
 A: Read [QUICK_START.md](QUICK_START.md) - it's only 5 minutes and gets you running.
 
 ### Q: What API key do I need?
-A: Anthropic Claude API. Get it at https://console.anthropic.com - see [API_KEY_SETUP.md](API_KEY_SETUP.md)
+A: Groq API key. Get it at https://console.groq.com - see [API_KEY_SETUP.md](API_KEY_SETUP.md)
 
 ### Q: What was changed in my project?
 A: See [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - lists all files created/modified
@@ -169,7 +169,7 @@ A: Yes! See [FINAL_CHECKLIST.md](FINAL_CHECKLIST.md) - Pre-launch checklist incl
 ```
 1. Get API Key (2 min)
    → Read: API_KEY_SETUP.md
-   → Go to: console.anthropic.com
+   → Go to: console.groq.com
    → Create API key
    
 2. Setup Project (3 min)
@@ -208,7 +208,7 @@ A: Yes! See [FINAL_CHECKLIST.md](FINAL_CHECKLIST.md) - Pre-launch checklist incl
 - **PyMuPDF** - PDF processing
 
 ### External APIs
-- **Anthropic Claude API** - LLM for answer generation
+- **Groq API** - LLM for answer generation
 
 For detailed info: See [README_RAG.md](README_RAG.md#-tech-stack)
 
@@ -222,7 +222,7 @@ For detailed info: See [README_RAG.md](README_RAG.md#-tech-stack)
 | PDF upload (50 pages) | 15-25 sec | Larger PDFs take longer |
 | Model download (first use) | 10-30 sec | Cached for future use |
 | Question embedding | <1 sec | Uses cached model |
-| Claude API response | 1-3 sec | Network latency |
+| Groq API response | 1-3 sec | Network latency |
 | Total response time | 2-4 sec | Per question |
 
 For details: See [README_RAG.md](README_RAG.md#-performance-metrics)
@@ -240,7 +240,7 @@ For details: See [README_RAG.md](README_RAG.md#-performance-metrics)
 ### Issue: PDF upload fails
 → Check [FINAL_CHECKLIST.md](FINAL_CHECKLIST.md#test-2-pdf-upload)
 
-### Issue: No response from Claude
+### Issue: No response from Groq
 → Check [README_RAG.md](README_RAG.md#-troubleshooting)
 
 ### Issue: Slow performance
